@@ -466,8 +466,10 @@ static void process_command_chan()
     console_print(str);
 
 #ifdef PLATFORM_EFM32GG_STK3700
-#elif HAS_LCD
+#else
+#ifdef HAS_LCD
 	lcd_write_line(6, str);
+#endif
 #endif
 
     // change channel and restart

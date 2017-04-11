@@ -125,18 +125,19 @@ int main()
     // Only when using bootloader
 	//SCB->VTOR=0x4000;
 
-	//activate VCOM
-#ifdef PLATFORM_USE_VCOM
-	hw_gpio_configure_pin(VCOM_ENABLE, false, gpioModePushPull, 1);
-	hw_gpio_set(VCOM_ENABLE);
-#endif
-
     //initialise the platform itself
 	__platform_init();
     //do not initialise the scheduler, this is done by __framework_bootstrap()
     __framework_bootstrap();
     //initialise platform functionality that depends on the framework
     __platform_post_framework_init();
+
+	//activate VCOM
+#ifdef PLATFORM_USE_VCOM
+	hw_gpio_configure_pin(VCOM_ENABLE, false, gpioModePushPullDrive, 1);
+	hw_gpio_set(VCOM_ENABLE);
+#endif
+
     scheduler_run();
     return 0;
 }

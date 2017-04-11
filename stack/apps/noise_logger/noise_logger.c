@@ -29,7 +29,7 @@
 #include <hwsystem.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <userbutton.h>
+#include <button.h>
 #include <fifo.h>
 #include <debug.h>
 #include <platform_sensors.h>

@@ -41,6 +41,18 @@
 #if HW_NUM_LEDS > 0
 #include "hwleds.h"
 
+#ifdef HAS_LCD
+  #include "platform_lcd.h"
+  #define LCD_WRITE_STRING(...) lcd_write_string(__VA_ARGS__)
+  #define LCD_WRITE_LINE(line, ...) lcd_write_line(line, __VA_ARGS__)
+#else
+  #define LCD_WRITE_STRING(...)
+  #define LCD_WRITE_LINE(...)
+#endif
+
+static int Received = 0;
+static int Ref = -1;
+
 void led_blink_off()
 {
 	led_off(0);
@@ -60,6 +72,50 @@ static void on_unsolicited_response_received(d7asp_result_t d7asp_result, uint8_
 #if HW_NUM_LEDS > 0
   led_blink();
 #endif
+
+
+  uint16_t *pointer =  (uint16_t*) alp_command;
+  ++pointer;
+  ++pointer;
+
+  float internal_temp = (*pointer++)/10.0;
+  uint32_t tData = (*pointer++)*100;
+  uint32_t rhData = (*pointer++)*100;
+  uint16_t vdd = (*pointer++);
+  uint16_t Count = (*pointer++);
+
+  if(Count < Ref)
+	  Ref=-1;
+
+  if(Ref==-1){
+	  Ref = Count-1;
+	  Received = Count;
+  }else {
+	  ++Received;
+  }
+
+  char str[30];
+  sprintf(str, "Int T: %2d.%d C", (int)internal_temp, (int)(internal_temp*10)%10);
+  LCD_WRITE_LINE(2,str);
+  log_print_string(str);
+  sprintf(str, "Ext T: %d.%d C", (int)(tData/1000), (int)(tData%1000)/100);
+  LCD_WRITE_LINE(3,str);
+  log_print_string(str);
+  sprintf(str, "Ext H: %d.%d", (int)(rhData/1000), (int)(rhData%1000)/100);
+  LCD_WRITE_LINE(4,str);
+  log_print_string(str);
+  sprintf(str, "Batt %d mV", (int)vdd);
+  LCD_WRITE_LINE(5,str);
+  log_print_string(str);
+  sprintf(str, "Recv %d / %d         ", Received-Ref, (int)Count-Ref);
+  LCD_WRITE_LINE(7,str);
+  log_print_string(str);
+  sprintf(str, "RX -%d", (int)d7asp_result.rx_level);
+  LCD_WRITE_LINE(9,str);
+  log_print_string(str);
+  sprintf(str, "LB %d", (int)d7asp_result.link_budget);
+  LCD_WRITE_LINE(10,str);
+  log_print_string(str);
 }
 
 
